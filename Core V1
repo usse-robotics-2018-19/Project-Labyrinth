@@ -1,0 +1,194 @@
+#include<Wire.h>
+#include <math.h>
+#include <VL53L0X.h>
+
+//VL53L0X
+VL53L0X sensor1;
+VL53L0X sensor2;
+const int XSHUT1 = 5;
+const int XSHUT2 = 6;
+#define Sensor1_Address 42
+#define Sensor2_Address 43
+
+//A4988
+int Step_A = 11;
+int Dir_A = 10;
+int Step_B = 3;
+int Dir_B = 2;
+
+int value = 0; 
+int Index;
+char Selection;
+int SensorValue;
+
+void setup() 
+{
+  pinMode(XSHUT1, OUTPUT);
+  pinMode(XSHUT2, OUTPUT);
+  Serial.begin(9600);
+
+  //VL53L0X
+
+  pinMode(XSHUT1, INPUT);
+  delay(10);
+  sensor1.setAddress(Sensor1_Address);
+  pinMode(XSHUT2, INPUT);
+  delay(10);
+  sensor2.setAddress(Sensor2_Address);
+
+  sensor1.init();
+  sensor2.init();
+  sensor1.setTimeout(500);
+  sensor2.setTimeout(500);
+
+  sensor1.startContinuous();
+  sensor2.startContinuous();
+
+  //STEPPER MOTORS
+  pinMode(Step_A, OUTPUT); 
+  pinMode(Dir_A, OUTPUT); 
+  pinMode(Step_B, OUTPUT);
+  pinMode(Dir_B, OUTPUT); 
+
+  shortMenu();
+}
+
+void loop() 
+{
+  if (Serial.available()){
+    Selection = Serial.read();
+  
+    switch (Selection)
+    {
+      case '1':
+      {
+        Serial.println(F("************* TESTING STEPPERS MOTORS - A4988 ******************"));
+        testSteppers();
+        break;
+      }
+            case '2':
+      {
+        Serial.println(F("******************* MESURING VOLTAGE INPUT *********************"));
+        mesureVoltage();
+        break;
+      }
+           case '4':
+      {
+        Serial.println(F("**************** MESURING DISTANCE - VL53L0X *******************"));
+        displayVL53L0X();
+        break;
+      }
+    }
+  }
+}
+
+//********************** TEST STEPPERS MOTORS **********************
+void testSteppers() {
+  Serial.println(F("MOT_A: RIGHT"));
+  turnRight(Dir_A, Step_A, 100);
+  delay(1000);
+  Serial.println(F("MOT_B: RIGHT"));
+  turnRight(Dir_B, Step_B, 100);
+  delay(1000);
+  Serial.println(F("MOT_A: LEFT"));
+  turnLeft(Dir_A, Step_A, 100);
+  delay(1000);
+  Serial.println(F("MOT_B: LEFT"));
+  turnLeft(Dir_B, Step_B, 100);
+  delay(1000);
+  Serial.println(F("MOT_A & MOT_B: RIGHT"));
+  turnRight(Dir_A, Step_A, 100);
+  turnRight(Dir_B, Step_B, 100);
+  delay(1000);
+  Serial.println(F("MOT_A & MOT_B: LEFT"));
+  turnLeft(Dir_A, Step_A, 100);
+  turnLeft(Dir_B, Step_B, 100);
+  shortMenu();
+}
+
+void turnRight(int Mot_Dir, int Mot_Step, int spd) {
+  digitalWrite( Mot_Dir,HIGH);
+  for (int i =0; i <= 3000; i++){
+    digitalWrite(Mot_Step, HIGH);
+    delayMicroseconds(spd);
+    digitalWrite(Mot_Step, LOW);
+  }
+}
+
+void turnLeft(int Mot_Dir, int Mot_Step, int spd) {
+  digitalWrite( Mot_Dir,LOW);
+  for (int i =0; i <= 3000; i++){
+    digitalWrite(Mot_Step, HIGH);
+    delayMicroseconds(spd);
+    digitalWrite(Mot_Step, LOW);
+  }
+}
+
+void turnMotors(int Mot_Dir_A, int Mot_Step_A, bool dir_A, bool turn_A, int Mot_Dir_B, int Mot_Step_B, bool dir_B, bool turn_B, int spd) {
+  if (turn_A == true && turn_B == true){
+    //TURN BOTH
+    if (dir_A == true && dir_B == true){
+      //TURN A and B RIGHT
+    } else if( dir_A == true && dir_B == false) {
+      //TURN A RIGHT and B LEFT
+    } else if ( dir_A == false && dir_B == true) {
+      //TURN A LEFT and B RIGH
+    } else {
+      //TURN A LEFT and B LEFT
+    }
+  } else if (turn_A == true && turn_B == false) {
+    //TURN A ONLY
+    if (dir_A == true) {
+      //TURN A RIGHT
+    } else {
+      //TURN A LEFT 
+    }
+  } else if (turn_A == false && turn_B == true) {
+    //TURN B ONLY
+    if (dir_B == true){
+      //TURN B RIGHT
+    } else {
+      //TURN B LEFT
+    }
+  }  
+}
+
+//********************** BATTERY VOLTAGE **********************
+
+void mesureVoltage() {
+  SensorValue = .0;
+  for (Index = 0; Index < 10; Index++){
+    SensorValue += analogRead(A0);
+    delay(100);
+  }
+   float voltage = (SensorValue/Index) * (15.5 / 1023.0);
+   Serial.println((String)"Input power: " + voltage + (String)" V");
+   shortMenu();
+}
+
+//********************** MAIN MENU **********************
+
+void shortMenu() {
+  Serial.println(F("****************************************************************"));
+  Serial.println(F("* 1.Stepper Motors | 2.Voltage | 3.MPU-6050 | 4.VL53L0X | 5.IR *"));
+  Serial.println(F("****************************************************************\n"));
+}
+
+
+//********************** TEST VL53L0X **********************
+
+void displayVL53L0X() { 
+  //digitalWrite(XSHUT2,LOW);
+  for (int i = 0; i <= 300; i++){
+    Serial.println((String)"Distance 1: " + sensor1.readRangeContinuousMillimeters() + (String)" mm");
+    if (sensor1.timeoutOccurred()) Serial.print(" TIMEOUT");
+  }
+  //digitalWrite(XSHUT2,HIGH);
+  for (int i = 0; i <= 300; i++){
+  //digitalWrite(XSHUT1,LOW);
+    Serial.println((String)"Distance 2: " + sensor2.readRangeContinuousMillimeters() + (String)" mm");
+    if (sensor2.timeoutOccurred()) Serial.print(" TIMEOUT");
+  //digitalWrite(XSHUT1,HIGH);
+  }
+  shortMenu();
+}
