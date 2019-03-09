@@ -1,0 +1,58 @@
+// 8x16 Array in Binary
+int Array [8][16] = { 
+{B01000000, B00100000,  B00100000,  B01100000,  B01100000,  B00110000,  B01100000,  B01110000,  B01010000,  B00010100,  B01000011,  B01010000,  B01010000,  B00010010,  B00010000,  B10100000},
+{B01000000, B01100000,  B10010110,  B01000001,  B10110000,  B10100000,  B10000010,  B11100000,  B01010000,  B01010000,  B00011010,  B01100000,  B00010100,  B00001101,  B01000011,  B10010000},
+{B01000000, B11100000,  B01011000,  B00100000,  B10000010,  B10000110,  B00101001,  B10100000,  B00010000,  B00010000,  B00101100,  B10000001,  B00100100,  B01000001,  B00111000,  B00010000},
+{B01100000, B01010000,  B00010000,  B10000100,  B00001101,  B01001001,  B10010000,  B11000000,  B00110000,  B00010010,  B11000000,  B01010000,  B10010000,  B01001000,  B11000000,  B00110000},
+{B10000110, B01000001,  B00010100,  B01000011,  B01010000,  B01010000,  B01010000,  B00110000,  B11100000,  B00010100,  B01000001,  B00010010,  B01100000,  B01010000,  B01010000,  B10010010},
+{B00001110, B01000001,  B01110000,  B01111000,  B01010000,  B01010000,  B01010000,  B10010000,  B10100000,  B01100000,  B00100100,  B00101001,  B10100000,  B01100000,  B00010100,  B00101001},
+{B00001110, B01000001,  B10110000,  B11000000,  B01010000,  B01010010,  B00110000,  B10000000,  B10000010,  B10100000,  B10100000,  B11000010,  B10010110,  B10000001,  B01100000,  B10100000},
+{B01001000, B01010000,  B11010000,  B01010000,  B00010100,  B01001001,  B11010000,  B00010100,  B01001001,  B01010000,  B10010100,  B01001001,  B01011000,  B01010000,  B01010000,  B10010000},
+};
+
+// Other Variables (Experimental)
+int Direction = 1;
+int CurrentLocation [2] = {6,2};
+
+void setup() {
+  // put your setup code here, to run once:
+ Serial.begin(9600);
+}
+
+void loop() {
+
+  Serial.println(Direction);
+  Serial.println(Array[CurrentLocation[0]][CurrentLocation[1]], BIN);
+
+  // Changing Direction Clockwise Function
+  if(Direction > 1){
+    Direction--;
+    }
+  else{
+    Direction = 4;
+    }
+  
+  // Changing position in maze by moving forward
+  if((Direction % 2) == 0){
+    if(Direction == 4){
+      CurrentLocation[0] = CurrentLocation[0] - 1;
+      }
+    else{
+      CurrentLocation[0] = CurrentLocation[0] + 1;
+      }
+  }
+  else{
+    if(Direction == 3){
+      CurrentLocation[1] = CurrentLocation[1] + 1;
+      }
+    else{
+      CurrentLocation[1] = CurrentLocation[1] - 1;
+      }
+  }
+
+  // read maze ahead to check for gates (Not Finished)
+  int i = 0;  
+  while(i == 0){
+    Array[(CurrentLocation[0])+(((Direction % 2)-1)*i)][(CurrentLocation[1])((Direction % 2)*i)]
+    }
+  }
